@@ -32,12 +32,5 @@ export async function createOrder(truckId, data) {
   console.log("vendorId:", vendorId);
 
   // إنشاء الطلب
-  await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
-    ...data,
-    truckId,
-    userId: data.userId, // تأكد أنه موجود
-    vendorId: vendorId,  // 🔥 مهم جدًا
-    status: "pending",
-    createdAt: serverTimestamp(),
-  });
+  await addDoc(collection(db, "foodTrucks", truckId, "orders"), data);
 }
