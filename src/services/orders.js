@@ -8,6 +8,9 @@ import {
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
+  console.log("CREATE ORDER RUNNING");
+
+  // جلب بيانات الشاحنة
   const truckRef = doc(db, "foodTrucks", truckId);
   const truckSnap = await getDoc(truckRef);
 
@@ -16,14 +19,24 @@ export async function createOrder(truckId, data) {
     return;
   }
 
-  const vendorId = truckSnap.data().vendorId;
+  const truckData = truckSnap.data();
 
-  console.log("vendorId:", vendorId); // للتأكد
-console.log("CREATE ORDER RUNNING");
+  // تأكد أن vendorId موجود
+  if (!truckData?.vendorId) {
+    console.error("vendorId NOT FOUND in truck");
+    return;
+  }
+
+  const vendorId = truckData.vendorId;
+
+  console.log("vendorId:", vendorId);
+
+  // إنشاء الطلب
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     ...data,
     truckId,
-    vendorId: vendorId || null,
+    userId: data.userId, // تأكد أنه موجود
+    vendorId: vendorId,  // 🔥 مهم جدًا
     status: "pending",
     createdAt: serverTimestamp(),
   });
