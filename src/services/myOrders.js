@@ -5,7 +5,7 @@ export function listenToMyOrders(userId, callback) {
   const q = query(
     collectionGroup(db, "orders"),
     where("userId", "==", userId),
-    orderBy("createdAt", "desc")
+    
   );
 
   return onSnapshot(q, (snap) => {
