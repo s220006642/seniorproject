@@ -41,6 +41,12 @@ export default function Home() {
                 </Link>
               )}
 
+              {profile?.role === "customer" && (
+                <Link to="/my-orders" className="px-4 py-2 border rounded-xl">
+                  My Orders
+                </Link>
+              )}
+
               <button
                 onClick={() => signOut(auth)}
                 className="px-4 py-2 bg-black text-white rounded-xl"

@@ -6,7 +6,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import MapPage from "./pages/MapPage";
 import VendorDashboard from "./pages/VendorDashboard";
-
+import MyOrders from "./pages/MyOrders";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import VendorRoute from "./routes/VendorRoute";
 
@@ -44,7 +44,7 @@ export default function App() {
     </VendorRoute>
   }
 />
-
+<Route path="/my-orders" element={<MyOrders />} />
 <Route
   path="/vendor/edit/:id"
   element={
@@ -57,5 +57,7 @@ export default function App() {
         <Route path="*" element={<div className="p-6">404</div>} />
       </Routes>
     </BrowserRouter>
+
+    
   );
 }
