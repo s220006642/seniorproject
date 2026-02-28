@@ -9,7 +9,14 @@ export default function MyOrders() {
 
   useEffect(() => {
     if (!user) return;
-    const unsub = listenToMyOrders(user.uid, setOrders);
+
+    console.log("USER UID:", user.uid); // 🔥 هذا المهم
+
+    const unsub = listenToMyOrders(user.uid, (data) => {
+      console.log("ORDERS:", data); // 🔥 نشوف هل ترجع بيانات
+      setOrders(data);
+    });
+
     return () => unsub();
   }, [user]);
 
