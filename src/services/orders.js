@@ -11,12 +11,19 @@ export async function createOrder(truckId, data) {
   const truckRef = doc(db, "foodTrucks", truckId);
   const truckSnap = await getDoc(truckRef);
 
-  const vendorId = truckSnap.data().vendorId; // لازم يكون موجود
+  if (!truckSnap.exists()) {
+    console.error("Truck not found");
+    return;
+  }
 
+  const vendorId = truckSnap.data().vendorId;
+
+  console.log("vendorId:", vendorId); // للتأكد
+console.log("CREATE ORDER RUNNING");
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     ...data,
     truckId,
-    vendorId, // 🔥 هذا أهم سطر
+    vendorId: vendorId || null,
     status: "pending",
     createdAt: serverTimestamp(),
   });
