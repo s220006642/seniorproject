@@ -18,8 +18,6 @@ export function listenToMyOrders(userId, callback) {
       }));
       callback(items);
     },
-    (err) => {
-      console.error("listenToMyOrders error:", err);
-    }
+    (err) => console.error("listenToMyOrders error:", err)
   );
 }
