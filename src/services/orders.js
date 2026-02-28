@@ -1,23 +1,11 @@
-import {
-  addDoc,
-  collection,
-  onSnapshot,
-  query,
-  updateDoc,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { addDoc, collection, onSnapshot, query, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  const payload = {
+  await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     ...data,
-    truckId,                    // مفيد للعرض عند الزبون
-    status: "pending",           // تأكيد مطابق للـ rules
-    createdAt: serverTimestamp() // ضروري للـ orderBy
-  };
-
-  await addDoc(collection(db, "foodTrucks", truckId, "orders"), payload);
+    createdAt: serverTimestamp(),
+  });
 }
 
 export function listenToOrders(truckId, callback) {
@@ -30,5 +18,5 @@ export function listenToOrders(truckId, callback) {
 
 export async function updateOrderStatus(truckId, orderId, status) {
   const ref = doc(db, "foodTrucks", truckId, "orders", orderId);
-  await updateDoc(ref, { status });
+  await updateDoc(ref, { status }); // مهم: updateDoc فقط
 }
