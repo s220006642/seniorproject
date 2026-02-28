@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase/firebase";
-import { useAuth } from "../context/AuthContext";
 
 export default function Home() {
-  const { user, profile, loading } = useAuth();
-
-  if (loading) return <div className="p-6">Loading...</div>;
+  const { user, profile } = useAuth();
 
   return (
     <div className="min-h-screen p-6">
@@ -15,52 +13,41 @@ export default function Home() {
 
         {!user ? (
           <div className="space-y-3">
-            <p className="text-gray-600">You are not logged in.</p>
+            <p>Welcome</p>
             <div className="flex gap-3">
-              <Link className="px-4 py-2 rounded-xl bg-black text-white" to="/login">
+              <Link to="/login" className="px-4 py-2 bg-black text-white rounded-xl">
                 Login
               </Link>
-              <Link className="px-4 py-2 rounded-xl border" to="/register">
+              <Link to="/register" className="px-4 py-2 border rounded-xl">
                 Register
               </Link>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="p-4 rounded-2xl border">
-              <p className="text-sm text-gray-500">Signed in as</p>
-              <p className="font-semibold">{profile?.name || user.email}</p>
-              <p className="text-sm">
-                Role: <span className="font-semibold">{profile?.role || "unknown"}</span>
-              </p>
-              <p className="text-sm">
-                Email verified:{" "}
-                <span className="font-semibold">{user.emailVerified ? "Yes" : "No"}</span>
-              </p>
+            <div className="p-4 border rounded-xl">
+              <p className="font-semibold">{profile?.name}</p>
+              <p className="text-sm">Role: {profile?.role}</p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link className="px-4 py-2 rounded-xl border" to="/map">
-                Map (Protected)
+              <Link to="/map" className="px-4 py-2 border rounded-xl">
+                Map
               </Link>
 
-              <Link className="px-4 py-2 rounded-xl border" to="/vendor">
-                Vendor Dashboard (Vendor only)
-              </Link>
+              {profile?.role === "vendor" && (
+                <Link to="/vendor" className="px-4 py-2 border rounded-xl">
+                  Vendor Dashboard
+                </Link>
+              )}
 
               <button
-                className="px-4 py-2 rounded-xl bg-black text-white"
                 onClick={() => signOut(auth)}
+                className="px-4 py-2 bg-black text-white rounded-xl"
               >
                 Logout
               </button>
             </div>
-
-            {!user.emailVerified && (
-              <div className="p-3 rounded-xl bg-yellow-50 text-yellow-800 text-sm">
-                ملاحظة: بريدك غير مُتحقق. بعض المزايا ممكن نقفلها لاحقًا إذا احتجنا.
-              </div>
-            )}
           </div>
         )}
       </div>
