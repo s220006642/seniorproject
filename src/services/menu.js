@@ -6,7 +6,11 @@ export function listenToMenu(truckId, callback) {
   return onSnapshot(q, (snap) => {
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     callback(items);
-  });
+  },
+    (err) => {
+    console.error("MY_ORDERS_SNAPSHOT_ERROR:", err);
+  }
+);
 }
 
 export async function addMenuItem(truckId, data) {
