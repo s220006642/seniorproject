@@ -29,7 +29,7 @@ export default function Register() {
 
       await sendEmailVerification(cred.user);
 
-      setMsg("تم إنشاء الحساب. تم إرسال رابط تحقق إلى بريدك الإلكتروني.");
+      setMsg("تم ارسال رابط تحقق الى بريدك الالكتروني ، الرجاء التحقق من البريد ثم قم بمعاودة تسجيل الدخول");
     } catch (error) {
       setErr(error.message);
     }

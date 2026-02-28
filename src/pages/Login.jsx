@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase";
-
+import { useNavigate } from "react-router-dom";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,18 +14,19 @@ export default function Login() {
     setErr("");
     setMsg("");
 
-    try {
-      const cred = await signInWithEmailAndPassword(auth, email, password);
+const navigate = useNavigate();
 
-      if (!cred.user.emailVerified) {
-        setMsg("تم تسجيل الدخول، لكن بريدك غير مُتحقق. تحقق من بريدك ثم أعد المحاولة.");
-      } else {
-        setMsg("تم تسجيل الدخول بنجاح.");
-      }
-    } catch (error) {
-      setErr(error.message);
-    }
-  };
+try {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+
+  if (!cred.user.emailVerified) {
+    setMsg("تم تسجيل الدخول، لكن بريدك لم يتم التحقق منه. تحقق من بريدك ثم أعد المحاولة.");
+  } else {
+    navigate("/");
+  }
+} catch (error) {
+  setErr(error.message);
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
