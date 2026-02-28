@@ -19,7 +19,7 @@ export async function createOrder(truckId, data) {
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     ...data,
     truckId,
-    vendorId,                 // مهم
+    vendorId: vendorId || null,                 
     status: "pending",         // مهم (مطابق للـ rules)
     createdAt: serverTimestamp()
   });
