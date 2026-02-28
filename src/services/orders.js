@@ -1,8 +1,23 @@
-import { addDoc, collection, onSnapshot, query, updateDoc, doc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  query,
+  updateDoc,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  await addDoc(collection(db, "foodTrucks", truckId, "orders"), data);
+  const payload = {
+    ...data,
+    truckId,                    // مفيد للعرض عند الزبون
+    status: "pending",           // تأكيد مطابق للـ rules
+    createdAt: serverTimestamp() // ضروري للـ orderBy
+  };
+
+  await addDoc(collection(db, "foodTrucks", truckId, "orders"), payload);
 }
 
 export function listenToOrders(truckId, callback) {
