@@ -5,15 +5,21 @@ export function listenToMyOrders(userId, callback) {
   const q = query(
     collectionGroup(db, "orders"),
     where("userId", "==", userId),
-    where("userId", "==", userId)
+    orderBy("createdAt", "desc")
   );
 
-  return onSnapshot(q, (snap) => {
-    const items = snap.docs.map((d) => ({
-      id: d.id,
-      truckId: d.ref.parent.parent.id,
-      ...d.data(),
-    }));
-    callback(items);
-  });
+  return onSnapshot(
+    q,
+    (snap) => {
+      const items = snap.docs.map((d) => ({
+        id: d.id,
+        truckId: d.ref.parent.parent?.id,
+        ...d.data(),
+      }));
+      callback(items);
+    },
+    (err) => {
+      console.error("listenToMyOrders error:", err);
+    }
+  );
 }
