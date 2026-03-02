@@ -15,6 +15,8 @@ export default function MyOrders() {
     const unsub = listenToMyOrders(user.uid, (data) => {
       console.log("ORDERS:", data); // 🔥 نشوف هل ترجع بيانات
       setOrders(data);
+      console.log("UID:", user?.uid);
+    console.log("PROJECT:", import.meta.env.VITE_FIREBASE_PROJECT_ID);
     });
 
     return () => unsub();
