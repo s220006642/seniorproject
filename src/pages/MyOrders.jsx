@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { listenToMyOrders } from "../services/myOrders";
-
+import { db } from "../firebase/firebase";
 export default function MyOrders() {
   const { user, profile } = useAuth();
   const [orders, setOrders] = useState([]);
+  console.log("MyOrders render", { hasUser: !!user, uid: user?.uid, role: profile?.role });
 
-  useEffect(() => {
+console.log("PROJECT ID:", db.app.options.projectId);  useEffect(() => {
     if (!user) return;
 
     console.log("USER UID:", user.uid); // 🔥 هذا المهم

@@ -1,36 +1,24 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { addDoc, collection, onSnapshot, query, updateDoc, doc, serverTimestamp, getDoc } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  console.log("CREATE ORDER RUNNING");
+  // (اختياري) خله بسيط الآن عشان يبني
+  await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
+    ...data,
+    status: "pending",
+    createdAt: serverTimestamp(),
+  });
+}
 
-  // جلب بيانات الشاحنة
-  const truckRef = doc(db, "foodTrucks", truckId);
-  const truckSnap = await getDoc(truckRef);
+export function listenToOrders(truckId, callback) {
+  const q = query(collection(db, "foodTrucks", truckId, "orders"));
+  return onSnapshot(q, (snap) => {
+    const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    callback(items);
+  });
+}
 
-  if (!truckSnap.exists()) {
-    console.error("Truck not found");
-    return;
-  }
-
-  const truckData = truckSnap.data();
-
-  // تأكد أن vendorId موجود
-  if (!truckData?.vendorId) {
-    console.error("vendorId NOT FOUND in truck");
-    return;
-  }
-
-  const vendorId = truckData.vendorId;
-
-  console.log("vendorId:", vendorId);
-
-  // إنشاء الطلب
-  await addDoc(collection(db, "foodTrucks", truckId, "orders"), data);
+export async function updateOrderStatus(truckId, orderId, status) {
+  const ref = doc(db, "foodTrucks", truckId, "orders", orderId);
+  await updateDoc(ref, { status });
 }
