@@ -1,4 +1,4 @@
-// src/pages/VendorDashboard.jsx
+
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";

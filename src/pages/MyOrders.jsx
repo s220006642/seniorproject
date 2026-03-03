@@ -14,7 +14,7 @@ console.log("PROJECT ID:", db.app.options.projectId);  useEffect(() => {
     console.log("USER UID:", user.uid); // 🔥 هذا المهم
 
     const unsub = listenToMyOrders(user.uid, (data) => {
-      console.log("ORDERS:", data); // 🔥 نشوف هل ترجع بيانات
+      console.log("ORDERS:", data); // نشوف هل ترجع بيانات
       setOrders(data);
       console.log("UID:", user?.uid);
     console.log("PROJECT:", import.meta.env.VITE_FIREBASE_PROJECT_ID);
@@ -58,8 +58,19 @@ console.log("PROJECT ID:", db.app.options.projectId);  useEffect(() => {
             {orders.map((o) => (
               <div key={o.id} className="border rounded-2xl p-4">
                 <div className="flex items-center justify-between">
-                  <div className="font-semibold">Status: {o.status}</div>
-                  <div className="font-semibold">{Number(o.total || 0).toFixed(2)} SAR</div>
+                  <div className="font-semibold">
+                   الحالة: <span className="font-bold">{statusLabel[o.status] || o.status}</span>
+                </div>
+{/*يا عيال احرصو على ترتيب الكود عشان تسهل قرايته */}
+        <StatusTimeline status={o.status} /> 
+          <div
+            className={["font-semibold",
+              o.status === "rejected" ? "text-red-600" : "",
+              o.status === "ready" ? "text-green-600" : "",
+                ].join(" ")}
+>
+                {Number(o.total || 0).toFixed(2)} SAR
+          </div>
                 </div>
                 <div className="text-xs text-gray-600 mt-1">Truck ID: {o.truckId}</div>
 
