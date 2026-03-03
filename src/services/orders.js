@@ -11,9 +11,7 @@ export async function createOrder(truckId, data) {
 }
 
 export function listenToOrders(truckId, callback) {
-  const q = query(
-  collectionGroup(db, "orders"),
-  where("userId", "==", userId));
+  const q = query(collection(db, "foodTrucks", truckId, "orders"));
   return onSnapshot(q, (snap) => {
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     callback(items);

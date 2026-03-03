@@ -2,11 +2,12 @@ import { collectionGroup, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export function listenToMyOrders(userId, callback) {
-    console.log("USER ID:", userId);
-  const q = query(
-    collectionGroup(db, "orders"),
-    where("userId", "==", userId)
-  );
+
+const q = query(
+  collectionGroup(db, "orders"),
+  where("userId", "==", userId),
+  orderBy("createdAt", "desc")
+);
 
   return onSnapshot(q, (snap) => {
     const items = snap.docs.map((d) => ({
