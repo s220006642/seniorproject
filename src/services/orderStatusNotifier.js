@@ -1,4 +1,4 @@
-import { collectionGroup, onSnapshot, query, where } from "firebase/firestore";
+import { collectionGroup, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 const STATUS_AR = {
@@ -13,7 +13,11 @@ const STATUS_AR = {
 export function listenToMyOrderStatusChanges(userId, onChange) {
   if (!userId) return () => {};
 
-  const q = query(collectionGroup(db, "orders"), where("userId", "==", userId));
+  const q = query(
+  collectionGroup(db, "orders"),
+  where("userId", "==", userId),
+  orderBy("createdAt", "desc")
+);
 
   const lastStatusById = new Map();
   let booted = false;
