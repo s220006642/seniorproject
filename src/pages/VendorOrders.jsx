@@ -20,7 +20,9 @@ export default function VendorOrders({ truckId }) {
               {Number(o.total || 0).toFixed(2)} SAR
             </div>
           </div>
-
+          <div className="mt-1 text-xs text-gray-600">
+  Customer: {o.customerName ? o.customerName : o.userId}
+</div>
           <div className="mt-2 space-y-1">
             {(o.items || []).map((it, idx) => (
               <div key={idx} className="text-xs text-gray-700">

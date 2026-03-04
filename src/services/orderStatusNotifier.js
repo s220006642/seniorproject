@@ -25,13 +25,7 @@ export function listenToMyOrderStatusChanges(userId, onChange) {
   return onSnapshot(
     q,
     (snap) => {
-      // DEBUG: أول مرة فقط، نرسل Toast يؤكد أن الاستماع شغال ويعرض عدد الطلبات
-      if (!booted) {
-        onChange?.({
-          orderId: "LISTENER",
-          statusLabel: `Listener ON, orders: ${snap.size}`,
-        });
-      }
+
 
       snap.docChanges().forEach((ch) => {
         const data = { id: ch.doc.id, ...ch.doc.data() };
@@ -40,7 +34,7 @@ export function listenToMyOrderStatusChanges(userId, onChange) {
 
         const prev = lastStatusById.get(data.id);
 
-        // أول تحميل: خزّن بدون إشعار تغيّر
+        // أول تحميل: خزّن بدون إشعار 
         if (!booted) {
           lastStatusById.set(data.id, newStatus);
           return;

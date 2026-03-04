@@ -1,10 +1,31 @@
-import { addDoc, collection, onSnapshot, query, updateDoc, doc, serverTimestamp, getDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  onSnapshot,
+  query,
+  updateDoc,
+  doc,
+  serverTimestamp,
+  getDoc,
+} from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  // (اختياري) خله بسيط الآن عشان يبني
+  // نجمع بيانات اسم الشاحنة واسم العميل ونخزنها داخل الطلب
+  const [truckSnap, userSnap] = await Promise.all([
+    getDoc(doc(db, "foodTrucks", truckId)),
+    data?.userId ? getDoc(doc(db, "users", data.userId)) : Promise.resolve(null),
+  ]);
+
+  const truckName = truckSnap?.exists() ? truckSnap.data()?.name || "" : "";
+  const customerName =
+    userSnap?.exists?.() ? userSnap.data()?.name || "" : "";
+
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     ...data,
+    truckId, 
+    truckName,
+    customerName,
     status: "pending",
     createdAt: serverTimestamp(),
   });
