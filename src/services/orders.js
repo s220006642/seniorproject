@@ -11,21 +11,27 @@ import {
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  // نجمع بيانات اسم الشاحنة واسم العميل ونخزنها داخل الطلب
-  const [truckSnap, userSnap] = await Promise.all([
-    getDoc(doc(db, "foodTrucks", truckId)),
-    data?.userId ? getDoc(doc(db, "users", data.userId)) : Promise.resolve(null),
-  ]);
+  // نجيب اسم الشاحنة
+  const truckSnap = await getDoc(doc(db, "foodTrucks", truckId));
+  const truckName = truckSnap.exists() ? truckSnap.data()?.name || "" : "";
 
-  const truckName = truckSnap?.exists() ? truckSnap.data()?.name || "" : "";
-  const customerName =
-    userSnap?.exists?.() ? userSnap.data()?.name || "" : "";
+  // نجيب اسم العميل (العميل يقدر يقرأ ملفه حسب rules)
+  let customerName = "";
+  if (data?.userId) {
+    const userSnap = await getDoc(doc(db, "users", data.userId));
+    customerName = userSnap.exists() ? userSnap.data()?.name || "" : "";
+  }
 
+  // نكتب الطلب مع الأسماء داخل الوثيقة
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
-    ...data,
-    truckId, 
+    userId: data.userId,
+    items: data.items || [],
+    total: data.total || 0,
+
+    truckId, // اختياري لكنه مفيد
     truckName,
     customerName,
+
     status: "pending",
     createdAt: serverTimestamp(),
   });
