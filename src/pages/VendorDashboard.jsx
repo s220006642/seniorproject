@@ -5,6 +5,7 @@ import { db } from "../firebase/firebase";
 import { useAuth } from "../context/AuthContext";
 import { fixLeafletIcon } from "../services/leafletIconFix";
 import { Link, useNavigate } from "react-router-dom";
+import { uploadToCloudinary } from "../services/cloudinaryUpload";
 
 import { getVendorTrucks } from "../services/vendorTrucks";
 import { listenToMenu, addMenuItem } from "../services/menu";
@@ -36,6 +37,11 @@ export default function VendorDashboard() {
   const [loadingLoc, setLoadingLoc] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Truck Image (optional)
+  const [truckImageFile, setTruckImageFile] = useState(null);
+  const [truckImagePreview, setTruckImagePreview] = useState("");
+  const [uploadingTruckImage, setUploadingTruckImage] = useState(false);
+
   // Vendor trucks
   const [myTrucks, setMyTrucks] = useState([]);
   const [selectedTruckId, setSelectedTruckId] = useState("");
@@ -55,6 +61,13 @@ export default function VendorDashboard() {
   useEffect(() => {
     fixLeafletIcon();
   }, []);
+
+  // تنظيف preview URL للصورة
+  useEffect(() => {
+    return () => {
+      if (truckImagePreview) URL.revokeObjectURL(truckImagePreview);
+    };
+  }, [truckImagePreview]);
 
   // Load vendor trucks (for menu/orders management)
   useEffect(() => {
@@ -96,6 +109,33 @@ export default function VendorDashboard() {
     return name.trim() && cuisine.trim() && location && user && profile?.role === "vendor";
   }, [name, cuisine, location, user, profile]);
 
+  const pickTruckImage = (file) => {
+    setErr("");
+    setMsg("");
+
+    if (!file) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!file.type || !allowed.includes(file.type)) {
+      setErr("الصورة لازم تكون JPG أو PNG أو WebP.");
+      return;
+    }
+
+    const maxBytes = 2 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setErr("حجم الصورة كبير. الحد الأقصى 2MB.");
+      return;
+    }
+
+    setTruckImageFile(file);
+
+    const url = URL.createObjectURL(file);
+    setTruckImagePreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return url;
+    });
+  };
+
   const useMyLocation = () => {
     setErr("");
     setMsg("");
@@ -133,6 +173,14 @@ export default function VendorDashboard() {
     try {
       setSaving(true);
 
+      // ارفع الصورة اختياريًا لـ Cloudinary
+      let imageUrl = "";
+      if (truckImageFile) {
+        setUploadingTruckImage(true);
+        imageUrl = await uploadToCloudinary(truckImageFile);
+        setUploadingTruckImage(false);
+      }
+
       await addDoc(collection(db, "foodTrucks"), {
         name: name.trim(),
         cuisine: cuisine.trim(),
@@ -140,6 +188,7 @@ export default function VendorDashboard() {
         lat: location[0],
         lng: location[1],
         vendorId: user.uid,
+        imageUrl, // ✅ هنا
         averageRating: 0,
         ratingCount: 0,
         createdAt: serverTimestamp(),
@@ -153,6 +202,9 @@ export default function VendorDashboard() {
       setDescription("");
       setLocation(null);
 
+      setTruckImageFile(null);
+      setTruckImagePreview("");
+
       // refresh trucks list
       const res = await getVendorTrucks(user.uid);
       setMyTrucks(res);
@@ -161,6 +213,7 @@ export default function VendorDashboard() {
       setTimeout(() => navigate("/map"), 900);
     } catch (error) {
       setSaving(false);
+      setUploadingTruckImage(false);
       setErr(error.message);
     }
   };
@@ -232,12 +285,9 @@ export default function VendorDashboard() {
       <div className="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left column */}
         <div className="space-y-4">
-          {/* Messages */}
           {(msg || err) && (
             <div className="space-y-2">
-              {msg && (
-                <div className="p-3 rounded-xl bg-green-50 text-green-700 text-sm">{msg}</div>
-              )}
+              {msg && <div className="p-3 rounded-xl bg-green-50 text-green-700 text-sm">{msg}</div>}
               {err && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">{err}</div>}
             </div>
           )}
@@ -247,6 +297,32 @@ export default function VendorDashboard() {
             <h2 className="text-lg font-bold">Add Food Truck</h2>
 
             <form onSubmit={onSubmitTruck} className="space-y-3">
+              {/* Image optional */}
+              <div className="space-y-2">
+                <label className="text-sm">Truck Image (optional)</label>
+
+                <div className="w-full h-44 border rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden">
+                  {truckImagePreview ? (
+                    <img
+                      src={truckImagePreview}
+                      alt="Truck preview"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-xs text-gray-500">No image</div>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="block w-full text-sm"
+                  onChange={(e) => pickTruckImage(e.target.files?.[0])}
+                />
+
+                <div className="text-[11px] text-gray-500">الحد الأقصى 2MB.</div>
+              </div>
+
               <div>
                 <label className="text-sm">Truck Name</label>
                 <input
@@ -301,8 +377,11 @@ export default function VendorDashboard() {
                 )}
               </div>
 
-              <button className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50" disabled={!canSubmitTruck || saving}>
-                {saving ? "Saving..." : "Add Truck"}
+              <button
+                className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50"
+                disabled={!canSubmitTruck || saving || uploadingTruckImage}
+              >
+                {uploadingTruckImage ? "Uploading image..." : saving ? "Saving..." : "Add Truck"}
               </button>
             </form>
           </div>
@@ -385,19 +464,16 @@ export default function VendorDashboard() {
                 <div className="space-y-3">
                   {orders.map((o) => (
                     <div key={o.id} className="border rounded-xl p-3">
-<div className="flex items-center justify-between">
-  <div className="text-sm font-semibold">Status: {o.status}</div>
-  <div className="text-sm font-semibold">
-    {Number(o.total || 0).toFixed(2)} SAR
-  </div>
-</div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-semibold">Status: {o.status}</div>
+                        <div className="text-sm font-semibold">
+                          {Number(o.total || 0).toFixed(2)} SAR
+                        </div>
+                      </div>
 
-<div className="mt-1 text-xs text-gray-600">
-  Customer: {o.customerName || o.userId || "(missing)"}
-</div>
-
-
-
+                      <div className="mt-1 text-xs text-gray-600">
+                        Customer: {o.customerName || o.userId || "(missing)"}
+                      </div>
 
                       <div className="mt-2 space-y-1">
                         {(o.items || []).map((it, idx) => (
