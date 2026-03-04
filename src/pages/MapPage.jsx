@@ -40,8 +40,7 @@ function TruckPopupContent({ truck }) {
     }, 0);
   }, [cart, menu]);
 
-  const canOrder =
-    !!user && profile?.role === "customer" && user.emailVerified === true;
+  const canOrder = !!user && profile?.role === "customer" && user.emailVerified === true;
 
   const orderNow = async () => {
     setErr("");
@@ -98,28 +97,34 @@ function TruckPopupContent({ truck }) {
       <div className="font-bold">{truck.name || "Food Truck"}</div>
       <div className="text-sm text-gray-700">{truck.cuisine || ""}</div>
 
-      {truck.description && (
-        <div className="text-sm mt-2">{truck.description}</div>
-      )}
+      {/*  Truck image (fixed box, no crop) */}
+      {truck.imageUrl ? (
+        <div className="mt-2 w-full h-40 border rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden">
+          <img
+            src={truck.imageUrl}
+            alt={truck.name || "Food Truck"}
+            className="max-w-full max-h-full object-contain"
+            loading="lazy"
+          />
+        </div>
+      ) : null}
+
+
+
+
+      {truck.description && <div className="text-sm mt-2">{truck.description}</div>}
 
       <div className="text-sm mt-2">
         Rating:{" "}
         <span className="font-semibold">
-          {typeof truck.averageRating === "number"
-            ? truck.averageRating.toFixed(1)
-            : "0.0"}
+          {typeof truck.averageRating === "number" ? truck.averageRating.toFixed(1) : "0.0"}
         </span>{" "}
         <span className="text-xs text-gray-600">
           ({typeof truck.ratingCount === "number" ? truck.ratingCount : 0})
         </span>
       </div>
 
-      <a
-        href={navUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-block mt-2 text-sm underline"
-      >
+      <a href={navUrl} target="_blank" rel="noreferrer" className="inline-block mt-2 text-sm underline">
         Navigate
       </a>
 
@@ -134,9 +139,7 @@ function TruckPopupContent({ truck }) {
               <div key={item.id} className="flex items-center justify-between gap-2">
                 <div className="text-xs">
                   <div className="font-semibold">{item.name}</div>
-                  <div className="text-gray-600">
-                    {Number(item.price).toFixed(2)} SAR
-                  </div>
+                  <div className="text-gray-600">{Number(item.price).toFixed(2)} SAR</div>
                 </div>
 
                 <input
@@ -144,9 +147,7 @@ function TruckPopupContent({ truck }) {
                   min="0"
                   className="w-16 border rounded p-1 text-xs"
                   value={cart[item.id] ?? 0}
-                  onChange={(e) =>
-                    setCart((p) => ({ ...p, [item.id]: Number(e.target.value) }))
-                  }
+                  onChange={(e) => setCart((p) => ({ ...p, [item.id]: Number(e.target.value) }))}
                 />
               </div>
             ))}
@@ -157,16 +158,8 @@ function TruckPopupContent({ truck }) {
           Total: <span className="font-semibold">{total.toFixed(2)} SAR</span>
         </div>
 
-        {msg && (
-          <div className="mt-2 text-xs p-2 rounded bg-green-50 text-green-700">
-            {msg}
-          </div>
-        )}
-        {err && (
-          <div className="mt-2 text-xs p-2 rounded bg-red-50 text-red-700">
-            {err}
-          </div>
-        )}
+        {msg && <div className="mt-2 text-xs p-2 rounded bg-green-50 text-green-700">{msg}</div>}
+        {err && <div className="mt-2 text-xs p-2 rounded bg-red-50 text-red-700">{err}</div>}
 
         <button
           className="w-full bg-black text-white rounded p-2 text-xs mt-2 disabled:opacity-50"
@@ -176,20 +169,12 @@ function TruckPopupContent({ truck }) {
           {ordering ? "Ordering..." : "Order"}
         </button>
 
-        {!user && (
-          <div className="mt-2 text-xs text-gray-600">
-            سجل دخول كـ Customer للطلب.
-          </div>
-        )}
+        {!user && <div className="mt-2 text-xs text-gray-600">سجل دخول كـ Customer للطلب.</div>}
         {user && profile?.role !== "customer" && (
-          <div className="mt-2 text-xs text-gray-600">
-            الطلب متاح للـ Customer فقط.
-          </div>
+          <div className="mt-2 text-xs text-gray-600">الطلب متاح للـ Customer فقط.</div>
         )}
         {user && profile?.role === "customer" && !user.emailVerified && (
-          <div className="mt-2 text-xs text-gray-600">
-            وثّق بريدك الإلكتروني للطلب.
-          </div>
+          <div className="mt-2 text-xs text-gray-600">وثّق بريدك الإلكتروني للطلب.</div>
         )}
       </div>
 
@@ -248,28 +233,23 @@ export default function MapPage() {
             </div>
           </div>
 
-          <Link
-            to="/vendor"
-            className="px-3 py-1.5 rounded-xl bg-black text-white text-sm"
-          >
+          <Link to="/vendor" className="px-3 py-1.5 rounded-xl bg-black text-white text-sm">
             Vendor
           </Link>
         </div>
       </div>
 
-<MapContainer
-  center={center}
-  zoom={defaultZoom}
-  tap={false} 
-  preferCanvas={true}
-  zoomControl={true}
-  style={{ height: "100%", width: "100%" }}
-  ref={mapRef}
->
-<TileLayer
-  attribution="&copy; OpenStreetMap contributors"
-  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-/>
+      <MapContainer
+        center={center}
+        zoom={defaultZoom}
+        tap={false}
+        preferCanvas={true}
+        zoomControl={true}
+        style={{ height: "100%", width: "100%" }}
+        ref={mapRef}
+      >
+        <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
         {trucks.map((t) => {
           const lat = Number(t.lat);
           const lng = Number(t.lng);
