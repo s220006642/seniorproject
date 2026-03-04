@@ -396,9 +396,7 @@ export default function VendorDashboard() {
   Customer: {o.customerName || o.userId || "(missing)"}
 </div>
 
-<div className="mt-1 text-[11px] text-gray-500">
-  TruckId: {selectedTruckId} , OrderTruckId: {o.truckId || "(no field)"}
-</div>
+
 
                       <div className="mt-1 text-xs text-gray-600">
                         Customer: {o.customerName ? o.customerName : o.userId}
