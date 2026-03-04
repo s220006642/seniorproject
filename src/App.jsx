@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+
 import MyTrucks from "./pages/MyTrucks";
 import EditTruck from "./pages/EditTruck";
 import Home from "./pages/Home";
@@ -10,9 +12,60 @@ import MyOrders from "./pages/MyOrders";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import VendorRoute from "./routes/VendorRoute";
 
-export default function App() {
+import { useAuth } from "./context/AuthContext";
+import { listenToMyOrderStatusChanges } from "./services/orderStatusNotifier";
+
+function AppInner() {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    // إشعارات الطلبات للـ customer فقط
+    if (!user?.uid) return;
+    if (profile?.role !== "customer") return;
+
+    const unsub = listenToMyOrderStatusChanges(user.uid, (payload) => {
+      setToast(payload);
+      setTimeout(() => setToast(null), 3500);
+    });
+
+    return () => unsub();
+  }, [user?.uid, profile?.role]);
+
   return (
-    <BrowserRouter>
+    <>
+      {toast && (
+        <div className="fixed top-4 left-4 right-4 z-[9999]">
+          <div className="max-w-xl mx-auto bg-black text-white rounded-2xl px-4 py-3 shadow flex items-start justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-semibold">تحديث على طلبك</div>
+              <div className="opacity-90">
+                الطلب: {toast.orderId?.slice(0, 6)}… ، الحالة: {toast.statusLabel}
+              </div>
+
+              <button
+                className="mt-2 text-xs underline opacity-90"
+                onClick={() => {
+                  setToast(null);
+                  navigate("/my-orders");
+                }}
+              >
+                فتح الطلبات
+              </button>
+            </div>
+
+            <button
+              className="text-xs px-3 py-1 rounded-xl bg-white/15"
+              onClick={() => setToast(null)}
+            >
+              إغلاق
+            </button>
+          </div>
+        </div>
+      )}
+
       <Routes>
         <Route path="/" element={<Home />} />
 
@@ -36,28 +89,37 @@ export default function App() {
             </VendorRoute>
           }
         />
+
         <Route
-  path="/vendor/my-trucks"
-  element={
-    <VendorRoute>
-      <MyTrucks />
-    </VendorRoute>
-  }
-/>
-<Route path="/my-orders" element={<MyOrders />} />
-<Route
-  path="/vendor/edit/:id"
-  element={
-    <VendorRoute>
-      <EditTruck />
-    </VendorRoute>
-  }
-/>
+          path="/vendor/my-trucks"
+          element={
+            <VendorRoute>
+              <MyTrucks />
+            </VendorRoute>
+          }
+        />
+
+        <Route path="/my-orders" element={<MyOrders />} />
+
+        <Route
+          path="/vendor/edit/:id"
+          element={
+            <VendorRoute>
+              <EditTruck />
+            </VendorRoute>
+          }
+        />
 
         <Route path="*" element={<div className="p-6">404</div>} />
       </Routes>
-    </BrowserRouter>
+    </>
+  );
+}
 
-    
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
   );
 }
