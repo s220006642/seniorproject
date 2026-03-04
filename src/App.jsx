@@ -22,10 +22,8 @@ function AppInner() {
 
   const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    // إشعارات الطلبات للـ customer فقط
-    if (!user?.uid) return;
-    if (profile?.role !== "customer") return;
+useEffect(() => {
+  if (!user?.uid) return;
 
     const unsub = listenToMyOrderStatusChanges(user.uid, (payload) => {
       setToast(payload);
@@ -49,7 +47,7 @@ function AppInner() {
     });
 
     return () => unsub();
-  }, [user?.uid, profile?.role]);
+  }, [user?.uid]);
 useEffect(() => {
   const arm = () => setSoundReady(true);
   window.addEventListener("touchstart", arm, { once: true });
