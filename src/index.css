@@ -6,3 +6,12 @@ html, body, #root {
   overflow: hidden;
   touch-action: manipulation;
 }/*عشان ما تصير لخبطة الصفحة الرئيسية على الجوال*/
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}

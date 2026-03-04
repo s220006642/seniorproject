@@ -235,7 +235,7 @@ export default function MapPage() {
   const center = points[0] || defaultCenter;
 
   return (
-    <div className="h-[100svh] overflow-hidden relative">
+    <div className="fixed inset-0 overflow-hidden">
       <div className="absolute top-4 left-4 right-4 z-[1000]">
         <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur rounded-2xl shadow px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -259,17 +259,15 @@ export default function MapPage() {
         </div>
       </div>
 
-      <MapContainer
-        center={center}
-        zoom={defaultZoom}
-        tap={false} /*هذي يا شباب اللي بتخلي الخريطة على الجوال ثابته */
-        style={{ height: "100svh", width: "100%" }}
-        ref={mapRef}
-      >
-        <TileLayer
-          attribution="&copy; OpenStreetMap contributors"
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+<MapContainer
+  center={center}
+  zoom={defaultZoom}
+  tap={false} 
+  preferCanvas={true}
+  zoomControl={true}
+  style={{ height: "100%", width: "100%" }}
+  ref={mapRef}
+>
 
         {trucks.map((t) => {
           const lat = Number(t.lat);
