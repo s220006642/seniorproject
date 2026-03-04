@@ -385,11 +385,23 @@ export default function VendorDashboard() {
                 <div className="space-y-3">
                   {orders.map((o) => (
                     <div key={o.id} className="border rounded-xl p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold">Status: {o.status}</div>
-                        <div className="text-sm font-semibold">
-                          {Number(o.total || 0).toFixed(2)} SAR
-                        </div>
+<div className="flex items-center justify-between">
+  <div className="text-sm font-semibold">Status: {o.status}</div>
+  <div className="text-sm font-semibold">
+    {Number(o.total || 0).toFixed(2)} SAR
+  </div>
+</div>
+
+<div className="mt-1 text-xs text-gray-600">
+  Customer: {o.customerName || o.userId || "(missing)"}
+</div>
+
+<div className="mt-1 text-[11px] text-gray-500">
+  TruckId: {selectedTruckId} , OrderTruckId: {o.truckId || "(no field)"}
+</div>
+
+                      <div className="mt-1 text-xs text-gray-600">
+                        Customer: {o.customerName ? o.customerName : o.userId}
                       </div>
 
                       <div className="mt-2 space-y-1">
