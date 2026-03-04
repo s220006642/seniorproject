@@ -18,6 +18,7 @@ import { listenToMyOrderStatusChanges } from "./services/orderStatusNotifier";
 function AppInner() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const [soundReady, setSoundReady] = useState(false);
 
   const [toast, setToast] = useState(null);
 
@@ -29,11 +30,35 @@ function AppInner() {
     const unsub = listenToMyOrderStatusChanges(user.uid, (payload) => {
       setToast(payload);
       setTimeout(() => setToast(null), 3500);
+      if (soundReady) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.frequency.value = 880;
+    g.gain.value = 0.06;
+    o.start();
+    setTimeout(() => {
+      o.stop();
+      ctx.close();
+    }, 120);
+  } catch {}
+}
     });
 
     return () => unsub();
   }, [user?.uid, profile?.role]);
-
+useEffect(() => {
+  const arm = () => setSoundReady(true);
+  window.addEventListener("touchstart", arm, { once: true });
+  window.addEventListener("click", arm, { once: true });
+  return () => {
+    window.removeEventListener("touchstart", arm);
+    window.removeEventListener("click", arm);
+  };
+}, []);
   return (
     <>
       {toast && (
