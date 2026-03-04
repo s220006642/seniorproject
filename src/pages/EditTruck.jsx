@@ -6,6 +6,7 @@ import { db } from "../firebase/firebase";
 import { updateTruck } from "../services/vendorTrucks";
 import { useAuth } from "../context/AuthContext";
 import { fixLeafletIcon } from "../services/leafletIconFix";
+import { uploadTruckCoverImage } from "../services/truckImages";
 
 function LocationPicker({ value, onChange }) {
   useMapEvents({
@@ -25,6 +26,8 @@ export default function EditTruck() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
+
   const [err, setErr] = useState("");
   const [msg, setMsg] = useState("");
 
@@ -33,9 +36,21 @@ export default function EditTruck() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState(null);
 
+  // Image
+  const [imageUrl, setImageUrl] = useState("");
+  const [newImageFile, setNewImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+
   useEffect(() => {
     fixLeafletIcon();
   }, []);
+
+  useEffect(() => {
+    // تنظيف preview URL
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   useEffect(() => {
     const run = async () => {
@@ -63,6 +78,8 @@ export default function EditTruck() {
         setCuisine(data.cuisine || "");
         setDescription(data.description || "");
         setLocation([Number(data.lat), Number(data.lng)]);
+
+        setImageUrl(data.imageUrl || "");
       } catch (e) {
         setErr(e.message);
       } finally {
@@ -98,6 +115,35 @@ export default function EditTruck() {
     return name.trim() && cuisine.trim() && location && user && profile?.role === "vendor";
   }, [name, cuisine, location, user, profile]);
 
+  const onPickImage = (file) => {
+    setErr("");
+    setMsg("");
+
+    if (!file) return;
+
+    // تحقق النوع
+    if (!file.type || !file.type.startsWith("image/")) {
+      setErr("الملف لازم يكون صورة (JPG/PNG/WebP).");
+      return;
+    }
+
+    // تحقق الحجم 2MB
+    const maxBytes = 2 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      setErr("حجم الصورة كبير. الحد الأقصى 2MB.");
+      return;
+    }
+
+    setNewImageFile(file);
+
+    // preview بدون قص
+    const url = URL.createObjectURL(file);
+    setPreviewUrl((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return url;
+    });
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
@@ -111,20 +157,37 @@ export default function EditTruck() {
     try {
       setSaving(true);
 
+      // 1) لو فيه صورة جديدة, ارفعها وخذ رابطها
+      let finalImageUrl = imageUrl;
+
+      if (newImageFile) {
+        setUploadingImg(true);
+        finalImageUrl = await uploadTruckCoverImage(id, newImageFile);
+        setUploadingImg(false);
+      }
+
+      // 2) حدث بيانات الشاحنة + imageUrl
       await updateTruck(id, {
         name: name.trim(),
         cuisine: cuisine.trim(),
         description: description.trim(),
         lat: location[0],
         lng: location[1],
+        imageUrl: finalImageUrl || "",
       });
 
       setSaving(false);
       setMsg("تم حفظ التعديلات بنجاح.");
+
+      setNewImageFile(null);
+      setPreviewUrl("");
+      setImageUrl(finalImageUrl || "");
+
       setTimeout(() => navigate("/vendor/my-trucks"), 900);
-    } catch (e) {
+    } catch (e2) {
       setSaving(false);
-      setErr(e.message);
+      setUploadingImg(false);
+      setErr(e2.message);
     }
   };
 
@@ -142,6 +205,8 @@ export default function EditTruck() {
       </div>
     );
   }
+
+  const shownImage = previewUrl || imageUrl;
 
   return (
     <div className="min-h-screen">
@@ -168,6 +233,34 @@ export default function EditTruck() {
 
           {msg && <div className="p-3 rounded-xl bg-green-50 text-green-700 text-sm">{msg}</div>}
           {err && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">{err}</div>}
+
+          {/* Image box: مساحة ثابتة + object-contain بدون قص */}
+          <div className="space-y-2">
+            <div className="font-semibold text-sm">Truck Image</div>
+
+            <div className="w-full h-44 border rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden">
+              {shownImage ? (
+                <img
+                  src={shownImage}
+                  alt="Truck"
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <div className="text-xs text-gray-500">No image</div>
+              )}
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-sm"
+              onChange={(e) => onPickImage(e.target.files?.[0])}
+            />
+
+            <div className="text-[11px] text-gray-500">
+              الحد الأقصى 2MB. سيتم عرض الصورة داخل مساحة ثابتة بدون قص.
+            </div>
+          </div>
 
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
@@ -203,18 +296,18 @@ export default function EditTruck() {
               )}
             </div>
 
-            <button className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50" disabled={!canSave || saving}>
-              {saving ? "Saving..." : "Save changes"}
+            <button
+              className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50"
+              disabled={!canSave || saving || uploadingImg}
+            >
+              {uploadingImg ? "Uploading image..." : saving ? "Saving..." : "Save changes"}
             </button>
           </form>
         </div>
 
         <div className="rounded-2xl overflow-hidden shadow">
           <MapContainer center={location || [24.7136, 46.6753]} zoom={14} style={{ height: "520px", width: "100%" }}>
-            <TileLayer
-              attribution="&copy; OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <LocationPicker value={location} onChange={setLocation} />
           </MapContainer>
         </div>
