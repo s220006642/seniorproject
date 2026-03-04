@@ -268,7 +268,10 @@ export default function MapPage() {
   style={{ height: "100%", width: "100%" }}
   ref={mapRef}
 >
-
+<TileLayer
+  attribution="&copy; OpenStreetMap contributors"
+  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+/>
         {trucks.map((t) => {
           const lat = Number(t.lat);
           const lng = Number(t.lng);
