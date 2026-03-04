@@ -62,7 +62,7 @@ function StatusTimeline({ status }) {
                 </span>
               </div>
 
-              {i !== STATUS_STEPS.length - 1 && (
+              {stepIndex !== STATUS_STEPS.length - 1 && (
                 <div className="w-8 h-px bg-gray-300" />
               )}
             </div>
