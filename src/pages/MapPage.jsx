@@ -235,7 +235,7 @@ export default function MapPage() {
   const center = points[0] || defaultCenter;
 
   return (
-    <div className="min-h-screen relative">
+    <div className="h-[100svh] overflow-hidden relative">
       <div className="absolute top-4 left-4 right-4 z-[1000]">
         <div className="max-w-4xl mx-auto bg-white/90 backdrop-blur rounded-2xl shadow px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -262,7 +262,8 @@ export default function MapPage() {
       <MapContainer
         center={center}
         zoom={defaultZoom}
-        style={{ height: "100vh", width: "100%" }}
+        tap={false} /*هذي يا شباب اللي بتخلي الخريطة على الجوال ثابته */
+        style={{ height: "100svh", width: "100%" }}
         ref={mapRef}
       >
         <TileLayer
