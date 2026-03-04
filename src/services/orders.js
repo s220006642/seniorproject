@@ -14,6 +14,8 @@ export async function createOrder(truckId, data) {
   // نجيب اسم الشاحنة
   const truckSnap = await getDoc(doc(db, "foodTrucks", truckId));
   const truckName = truckSnap.exists() ? truckSnap.data()?.name || "" : "";
+//لوق مؤقت لين نشوف سالفة اسم الفود ترك ليه ما يطلع
+console.log("createOrder()", { truckId, truckName, userId: data?.userId, customerName });
 
   // نجيب اسم العميل (العميل يقدر يقرأ ملفه حسب rules)
   let customerName = "";
