@@ -398,9 +398,6 @@ export default function VendorDashboard() {
 
 
 
-                      <div className="mt-1 text-xs text-gray-600">
-                        Customer: {o.customerName ? o.customerName : o.userId}
-                      </div>
 
                       <div className="mt-2 space-y-1">
                         {(o.items || []).map((it, idx) => (
