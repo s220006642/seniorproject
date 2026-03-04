@@ -35,9 +35,9 @@ function StatusTimeline({ status }) {
   return (
     <div className="mt-3">
       <div className="flex items-center gap-2 flex-wrap">
-        {STATUS_STEPS.map((s, i) => {
-          const isDone = i < idx;
-          const isCurrent = i === idx;
+{STATUS_STEPS.map((s, stepIndex) => {
+  const isDone = stepIndex < idx;
+  const isCurrent = stepIndex === idx;
 
           const dotClass = isDone
             ? "bg-green-600"
@@ -146,7 +146,9 @@ export default function MyOrders() {
                 </div>
 
                 {/* مؤقتًا - بالخطوة 2 بنعرض اسم الشاحنة بدل ID */}
-                <div className="text-xs text-gray-600 mt-2">Truck ID: {o.truckId}</div>
+                <div className="text-xs text-gray-600 mt-2">
+                    Truck: {o.truckName ? o.truckName : o.truckId}
+                </div>
 
                 <div className="mt-2 space-y-1">
                   {(o.items || []).map((it, idx) => (
