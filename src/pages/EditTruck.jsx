@@ -6,7 +6,7 @@ import { db } from "../firebase/firebase";
 import { updateTruck } from "../services/vendorTrucks";
 import { useAuth } from "../context/AuthContext";
 import { fixLeafletIcon } from "../services/leafletIconFix";
-import { uploadTruckCoverImage } from "../services/truckImages";
+import { uploadToCloudinary } from "../services/cloudinaryUpload";
 
 function LocationPicker({ value, onChange }) {
   useMapEvents({
@@ -56,6 +56,7 @@ export default function EditTruck() {
     const run = async () => {
       try {
         setErr("");
+        setMsg("");
         setLoading(true);
 
         const ref = doc(db, "foodTrucks", id);
@@ -68,6 +69,11 @@ export default function EditTruck() {
 
         const data = snap.data();
 
+        if (!user?.uid) {
+          setErr("Not signed in.");
+          return;
+        }
+
         // تأكد أنه يخص نفس الفيندور
         if (data.vendorId !== user.uid) {
           setErr("Unauthorized. This truck does not belong to you.");
@@ -78,7 +84,6 @@ export default function EditTruck() {
         setCuisine(data.cuisine || "");
         setDescription(data.description || "");
         setLocation([Number(data.lat), Number(data.lng)]);
-
         setImageUrl(data.imageUrl || "");
       } catch (e) {
         setErr(e.message);
@@ -87,7 +92,7 @@ export default function EditTruck() {
       }
     };
 
-    if (user && profile?.role === "vendor") run();
+    if (user && profile?.role === "vendor" && id) run();
   }, [id, user, profile]);
 
   const useMyLocation = () => {
@@ -122,8 +127,9 @@ export default function EditTruck() {
     if (!file) return;
 
     // تحقق النوع
-    if (!file.type || !file.type.startsWith("image/")) {
-      setErr("الملف لازم يكون صورة (JPG/PNG/WebP).");
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!file.type || !allowed.includes(file.type)) {
+      setErr("الصورة لازم تكون JPG أو PNG أو WebP.");
       return;
     }
 
@@ -136,7 +142,6 @@ export default function EditTruck() {
 
     setNewImageFile(file);
 
-    // preview بدون قص
     const url = URL.createObjectURL(file);
     setPreviewUrl((old) => {
       if (old) URL.revokeObjectURL(old);
@@ -157,16 +162,15 @@ export default function EditTruck() {
     try {
       setSaving(true);
 
-      // 1) لو فيه صورة جديدة, ارفعها وخذ رابطها
+      // لو فيه صورة جديدة ارفعها لـ Cloudinary
       let finalImageUrl = imageUrl;
 
       if (newImageFile) {
         setUploadingImg(true);
-        finalImageUrl = await uploadTruckCoverImage(id, newImageFile);
+        finalImageUrl = await uploadToCloudinary(newImageFile);
         setUploadingImg(false);
       }
 
-      // 2) حدث بيانات الشاحنة + imageUrl
       await updateTruck(id, {
         name: name.trim(),
         cuisine: cuisine.trim(),
@@ -240,11 +244,7 @@ export default function EditTruck() {
 
             <div className="w-full h-44 border rounded-2xl bg-gray-50 flex items-center justify-center overflow-hidden">
               {shownImage ? (
-                <img
-                  src={shownImage}
-                  alt="Truck"
-                  className="max-w-full max-h-full object-contain"
-                />
+                <img src={shownImage} alt="Truck" className="max-w-full max-h-full object-contain" />
               ) : (
                 <div className="text-xs text-gray-500">No image</div>
               )}
@@ -252,30 +252,42 @@ export default function EditTruck() {
 
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               className="block w-full text-sm"
               onChange={(e) => onPickImage(e.target.files?.[0])}
             />
 
             <div className="text-[11px] text-gray-500">
-              الحد الأقصى 2MB. سيتم عرض الصورة داخل مساحة ثابتة بدون قص.
+              الحد الأقصى 2MB. يتم عرض الصورة داخل مساحة ثابتة بدون قص.
             </div>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-3">
             <div>
               <label className="text-sm">Truck Name</label>
-              <input className="mt-1 w-full border rounded-xl p-2" value={name} onChange={(e) => setName(e.target.value)} />
+              <input
+                className="mt-1 w-full border rounded-xl p-2"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
 
             <div>
               <label className="text-sm">Cuisine</label>
-              <input className="mt-1 w-full border rounded-xl p-2" value={cuisine} onChange={(e) => setCuisine(e.target.value)} />
+              <input
+                className="mt-1 w-full border rounded-xl p-2"
+                value={cuisine}
+                onChange={(e) => setCuisine(e.target.value)}
+              />
             </div>
 
             <div>
               <label className="text-sm">Description</label>
-              <textarea className="mt-1 w-full border rounded-xl p-2 min-h-[90px]" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <textarea
+                className="mt-1 w-full border rounded-xl p-2 min-h-[90px]"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -306,8 +318,15 @@ export default function EditTruck() {
         </div>
 
         <div className="rounded-2xl overflow-hidden shadow">
-          <MapContainer center={location || [24.7136, 46.6753]} zoom={14} style={{ height: "520px", width: "100%" }}>
-            <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapContainer
+            center={location || [24.7136, 46.6753]}
+            zoom={14}
+            style={{ height: "520px", width: "100%" }}
+          >
+            <TileLayer
+              attribution="&copy; OpenStreetMap contributors"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
             <LocationPicker value={location} onChange={setLocation} />
           </MapContainer>
         </div>
