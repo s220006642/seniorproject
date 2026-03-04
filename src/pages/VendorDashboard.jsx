@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -94,13 +93,7 @@ export default function VendorDashboard() {
   }, [selectedTruckId]);
 
   const canSubmitTruck = useMemo(() => {
-    return (
-      name.trim() &&
-      cuisine.trim() &&
-      location &&
-      user &&
-      profile?.role === "vendor"
-    );
+    return name.trim() && cuisine.trim() && location && user && profile?.role === "vendor";
   }, [name, cuisine, location, user, profile]);
 
   const useMyLocation = () => {
@@ -205,6 +198,7 @@ export default function VendorDashboard() {
   };
 
   const setStatus = async (orderId, status) => {
+    setErr("");
     try {
       await updateOrderStatus(selectedTruckId, orderId, status);
     } catch (e) {
@@ -218,9 +212,7 @@ export default function VendorDashboard() {
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
           <div>
             <div className="text-xl font-bold">Vendor Dashboard</div>
-            <div className="text-sm text-gray-600">
-              Add trucks, manage menu, view orders.
-            </div>
+            <div className="text-sm text-gray-600">Add trucks, manage menu, view orders.</div>
           </div>
 
           <div className="flex gap-2">
@@ -230,10 +222,7 @@ export default function VendorDashboard() {
             <Link to="/map" className="px-3 py-2 rounded-xl border text-sm">
               Map
             </Link>
-            <Link
-              to="/vendor/my-trucks"
-              className="px-3 py-2 rounded-xl bg-black text-white text-sm"
-            >
+            <Link to="/vendor/my-trucks" className="px-3 py-2 rounded-xl bg-black text-white text-sm">
               Edit my trucks
             </Link>
           </div>
@@ -247,15 +236,9 @@ export default function VendorDashboard() {
           {(msg || err) && (
             <div className="space-y-2">
               {msg && (
-                <div className="p-3 rounded-xl bg-green-50 text-green-700 text-sm">
-                  {msg}
-                </div>
+                <div className="p-3 rounded-xl bg-green-50 text-green-700 text-sm">{msg}</div>
               )}
-              {err && (
-                <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">
-                  {err}
-                </div>
-              )}
+              {err && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm">{err}</div>}
             </div>
           )}
 
@@ -304,9 +287,7 @@ export default function VendorDashboard() {
                   {loadingLoc ? "Locating..." : "Use my location"}
                 </button>
 
-                <div className="text-sm text-gray-600 flex items-center">
-                  أو اضغط على الخريطة لتحديد الموقع
-                </div>
+                <div className="text-sm text-gray-600 flex items-center">أو اضغط على الخريطة لتحديد الموقع</div>
               </div>
 
               <div className="text-sm">
@@ -320,10 +301,7 @@ export default function VendorDashboard() {
                 )}
               </div>
 
-              <button
-                className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50"
-                disabled={!canSubmitTruck || saving}
-              >
+              <button className="w-full bg-black text-white rounded-xl p-2 disabled:opacity-50" disabled={!canSubmitTruck || saving}>
                 {saving ? "Saving..." : "Add Truck"}
               </button>
             </form>
@@ -386,15 +364,10 @@ export default function VendorDashboard() {
               ) : (
                 <div className="space-y-2">
                   {menu.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex items-center justify-between text-sm"
-                    >
+                    <div key={m.id} className="flex items-center justify-between text-sm">
                       <div>
                         <div className="font-semibold">{m.name}</div>
-                        <div className="text-xs text-gray-600">
-                          {Number(m.price).toFixed(2)} SAR
-                        </div>
+                        <div className="text-xs text-gray-600">{Number(m.price).toFixed(2)} SAR</div>
                       </div>
                     </div>
                   ))}
@@ -413,9 +386,7 @@ export default function VendorDashboard() {
                   {orders.map((o) => (
                     <div key={o.id} className="border rounded-xl p-3">
                       <div className="flex items-center justify-between">
-                        <div className="text-sm font-semibold">
-                          Status: {o.status}
-                        </div>
+                        <div className="text-sm font-semibold">Status: {o.status}</div>
                         <div className="text-sm font-semibold">
                           {Number(o.total || 0).toFixed(2)} SAR
                         </div>
@@ -424,37 +395,37 @@ export default function VendorDashboard() {
                       <div className="mt-2 space-y-1">
                         {(o.items || []).map((it, idx) => (
                           <div key={idx} className="text-xs text-gray-700">
-                            {it.name} x{it.qty} ={" "}
-                            {(Number(it.price) * Number(it.qty)).toFixed(2)} SAR
+                            {it.name} x{it.qty} = {(Number(it.price) * Number(it.qty)).toFixed(2)} SAR
                           </div>
                         ))}
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          className="px-3 py-1.5 rounded-lg border text-xs"
-                          onClick={() => setStatus(o.id, "accepted")}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          className="px-3 py-1.5 rounded-lg border text-xs"
-                          onClick={() => setStatus(o.id, "rejected")}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          className="px-3 py-1.5 rounded-lg border text-xs"
-                          onClick={() => setStatus(o.id, "preparing")}
-                        >
-                          Preparing
-                        </button>
-                        <button
-                          className="px-3 py-1.5 rounded-lg border text-xs"
-                          onClick={() => setStatus(o.id, "ready")}
-                        >
-                          Ready
-                        </button>
+                        {o.status === "pending" && (
+                          <>
+                            <button
+                              className="px-3 py-1.5 rounded-lg border text-xs"
+                              onClick={() => setStatus(o.id, "preparing")}
+                            >
+                              Accept
+                            </button>
+                            <button
+                              className="px-3 py-1.5 rounded-lg border text-xs"
+                              onClick={() => setStatus(o.id, "rejected")}
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {o.status === "preparing" && (
+                          <button
+                            className="px-3 py-1.5 rounded-lg border text-xs"
+                            onClick={() => setStatus(o.id, "ready")}
+                          >
+                            Ready
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -466,15 +437,8 @@ export default function VendorDashboard() {
 
         {/* Right column: Map picker for Add Truck */}
         <div className="rounded-2xl overflow-hidden shadow">
-          <MapContainer
-            center={location || defaultCenter}
-            zoom={defaultZoom}
-            style={{ height: "520px", width: "100%" }}
-          >
-            <TileLayer
-              attribution="&copy; OpenStreetMap contributors"
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+          <MapContainer center={location || defaultCenter} zoom={defaultZoom} style={{ height: "520px", width: "100%" }}>
+            <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <LocationPicker value={location} onChange={setLocation} />
           </MapContainer>
         </div>

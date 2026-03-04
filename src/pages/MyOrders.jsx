@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { listenToMyOrders } from "../services/myOrders";
 
-const STATUS_STEPS = ["pending", "accepted", "preparing", "ready"];
+const STATUS_STEPS = ["pending", "preparing", "ready"];
 
 const statusLabel = {
   pending: "قيد الانتظار",
-  accepted: "تم القبول",
   preparing: "قيد التجهيز",
   ready: "جاهز للاستلام",
   rejected: "مرفوض",
@@ -56,7 +55,9 @@ function StatusTimeline({ status }) {
             <div key={s} className="flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${dotClass}`} />
-                <span className={`px-2.5 py-1 rounded-full text-xs border ${chipClass}`}>
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs border ${chipClass}`}
+                >
                   {statusLabel[s]}
                 </span>
               </div>
@@ -144,6 +145,7 @@ export default function MyOrders() {
                   </div>
                 </div>
 
+                {/* مؤقتًا - بالخطوة 2 بنعرض اسم الشاحنة بدل ID */}
                 <div className="text-xs text-gray-600 mt-2">Truck ID: {o.truckId}</div>
 
                 <div className="mt-2 space-y-1">
