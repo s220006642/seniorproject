@@ -11,26 +11,24 @@ import {
 import { db } from "../firebase/firebase";
 
 export async function createOrder(truckId, data) {
-  // نجيب اسم الشاحنة
+  // 1) Truck name
   const truckSnap = await getDoc(doc(db, "foodTrucks", truckId));
-  const truckName = truckSnap.exists() ? truckSnap.data()?.name || "" : "";
-//لوق مؤقت لين نشوف سالفة اسم الفود ترك ليه ما يطلع
-console.log("createOrder()", { truckId, truckName, userId: data?.userId, customerName });
+  const truckName = truckSnap.exists() ? (truckSnap.data()?.name || "") : "";
 
-  // نجيب اسم العميل (العميل يقدر يقرأ ملفه حسب rules)
+  // 2) Customer name
   let customerName = "";
   if (data?.userId) {
     const userSnap = await getDoc(doc(db, "users", data.userId));
-    customerName = userSnap.exists() ? userSnap.data()?.name || "" : "";
+    customerName = userSnap.exists() ? (userSnap.data()?.name || "") : "";
   }
 
-  // نكتب الطلب مع الأسماء داخل الوثيقة
+  // 3) Write order
   await addDoc(collection(db, "foodTrucks", truckId, "orders"), {
     userId: data.userId,
     items: data.items || [],
     total: data.total || 0,
 
-    truckId, // اختياري لكنه مفيد
+    truckId,
     truckName,
     customerName,
 

@@ -77,8 +77,6 @@ function TruckPopupContent({ truck }) {
         userId: user.uid,
         items,
         total: Number(total.toFixed(2)),
-        status: "pending",
-        createdAt: new Date(),
       });
       setOrdering(false);
       setCart({});
