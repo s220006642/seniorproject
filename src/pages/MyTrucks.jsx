@@ -49,7 +49,7 @@ export default function MyTrucks() {
 
         {!loading && !err && items.length === 0 && (
           <div className="p-4 rounded-2xl border">
-            ما عندك شاحنات حاليًا. ارجع لصفحة Vendor وأضف شاحنة.
+            ما عندك فودترك حاليًا. ارجع لصفحة Vendor وأضف شاحنة.
           </div>
         )}
 
